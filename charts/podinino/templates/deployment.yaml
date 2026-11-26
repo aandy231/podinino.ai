@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "podinino.fullname" . }}-server
+  labels:
+    app.kubernetes.io/name: {{ include "podinino.name" . }}
+    app.kubernetes.io/component: server
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "podinino.name" . }}
+      app.kubernetes.io/component: server
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "podinino.name" . }}
+        app.kubernetes.io/component: server
+    spec:
+      serviceAccountName: {{ include "podinino.serviceAccountName" . }}
+      containers:
+        - name: server
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "8000"
+            - name: BASE_DOMAIN
+              value: {{ .Values.config.baseDomain | quote }}
+            - name: MAX_WORKSPACES_PER_USER
+              value: {{ .Values.config.maxWorkspacesPerUser | quote }}
+            - name: SANDBOX_IMAGE
+              value: {{ .Values.config.sandboxImage | quote }}
+            - name: LOG_LEVEL
+              value: {{ .Values.config.logLevel | quote }}
+            - name: USE_IN_CLUSTER_CONFIG
+              value: "true"
+            - name: MONGODB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "podinino.fullname" . }}-secrets
+                  key: mongodb-url
+            - name: ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "podinino.fullname" . }}-secrets
+                  key: encryption-key
+            - name: GITHUB_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "podinino.fullname" . }}-secrets
+                  key: github-client-id
+            - name: GITHUB_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "podinino.fullname" . }}-secrets
+                  key: github-client-secret
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 20

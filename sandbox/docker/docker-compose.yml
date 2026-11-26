@@ -1,0 +1,19 @@
+services:
+  claude-code-sandbox:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: claude-dev-pod
+    ports:
+      - "8000:8000"  # FastAPI Agent Service
+      - "8080:8080"  # code-server (VS Code web)
+    env_file:
+      - ../.env
+    environment:
+      - WORKSPACE_DIR=/workspace
+      - CODE_SERVER_URL=http://localhost:8080
+      - DEFAULT_PERMISSION_MODE=acceptEdits
+    volumes:
+      - ../workspace:/workspace
+      - ../app:/app/app
+    restart: unless-stopped

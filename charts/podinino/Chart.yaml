@@ -1,0 +1,17 @@
+apiVersion: v2
+name: podinino
+description: Self-hosted AI Coding Sandbox Platform with Claude Code agent and code-server IDE on Kubernetes.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - ai
+  - sandbox
+  - claude-code
+  - developer-tools
+  - kubernetes
+home: https://github.com/podinino/podinino
+sources:
+  - https://github.com/podinino/podinino
+maintainers:
+  - name: Podinino Community

@@ -1,0 +1,48 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/podinino/server
+  pullPolicy: IfNotPresent
+  tag: "0.1.0"
+
+service:
+  type: ClusterIP
+  port: 8000
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/proxy-body-size: "64m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+  host: "podinino.example.com"
+  tls:
+    - secretName: podinino-tls
+      hosts:
+        - "podinino.example.com"
+
+config:
+  baseDomain: "podinino.example.com"
+  maxWorkspacesPerUser: 5
+  sandboxImage: "ghcr.io/podinino/claude-code-sandbox:latest"
+  logLevel: "INFO"
+
+# Secrets required for Podinino operation
+secret:
+  mongodbUrl: "mongodb://podinino-mongodb:27017/podinino_db"
+  encryptionKey: "generate-a-32-byte-encryption-key-here"
+  githubClientId: ""
+  githubClientSecret: ""
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 250m
+    memory: 512Mi
+
+rbac:
+  create: true
